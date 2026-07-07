@@ -39,7 +39,7 @@ export default function PrdPage() {
   const fetchPRDs = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get('/prd');
+      const res = await api.get('/prd/');
       setPRDs(res.data.prds ?? []);
     } catch (err) {
       console.error('[PRD] Failed to load PRDs:', err);
@@ -63,7 +63,7 @@ export default function PrdPage() {
   const onSubmit = async (data: PRDForm) => {
     setGenerating(true);
     try {
-      const res = await api.post('/prd', data);
+      const res = await api.post('/prd/', data);
       setPRDs((prev) => [res.data.prd, ...prev]);
       setSelectedPRD(res.data.prd);
       setShowForm(false);
