@@ -40,7 +40,7 @@ export default function PitchDeckPage() {
   const fetchDecks = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get('/pitchdeck');
+      const res = await api.get('/pitchdeck/');
       setDecks(res.data.pitchDecks ?? []);
     } catch (err) {
       console.error('[PitchDeck] Failed to load decks:', err);
@@ -65,7 +65,7 @@ export default function PitchDeckPage() {
   const onSubmit = async (data: DeckForm) => {
     setGenerating(true);
     try {
-      const res = await api.post('/pitchdeck', data);
+      const res = await api.post('/pitchdeck/', data);
       setDecks((prev) => [res.data.pitchDeck, ...prev]);
       setSelectedDeck(res.data.pitchDeck);
       setShowForm(false);
