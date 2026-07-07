@@ -29,7 +29,7 @@ export default function ChatPage() {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const res = await api.get('/chat');
+        const res = await api.get('/chat/');
         console.log('Chat messages:', res.data.messages);
         setMessages(res.data.messages ?? []);
       } catch (err) {
@@ -64,9 +64,15 @@ export default function ChatPage() {
     setLoading(true);
 
     try {
-      const res = await api.post('/chat', { message: content.trim() });
-      console.log('Chat response:', res.data.message);
-      setMessages((prev) => [...prev, res.data.message]);
+      const res = await api.post('/chat/', { message: content.trim() });
+      console.log('Chat response:', res.data);
+      const assistantMessage: ChatMessage = {
+        id: Date.now(),
+        role: "assistant",
+        content: res.data.response || res.data.message || "No response received",
+        createdAt: new Date().toISOString(),
+    };
+      setMessages((prev) => [...prev, assistantMessage,]);
     } catch (err) {
       console.error('[Chat] Failed to send message:', err);
       if (axios.isAxiosError(err)) {
@@ -78,7 +84,15 @@ export default function ChatPage() {
         });
       }
       // error(err instanceof Error ? err.message : 'Failed to send message');
-      setMessages((prev) => prev.filter((m) => m.id !== userMsg.id));
+      setMessages((prev)=>[
+      ...prev,
+       {
+        id:Date.now(),
+        role:"assistant",
+        content:"Sorry, something went wrong. Please try again.",
+        createdAt:new Date().toISOString()
+        }
+      ])
     } finally {
       setLoading(false);
     }
@@ -99,7 +113,7 @@ export default function ChatPage() {
   const clearChat = async () => {
     setClearing(true);
     try {
-      await api.delete('/chat');
+      await api.delete('/chat/');
       setMessages([]);
       console.log('Chat history cleared');
       // success('Chat history cleared');
@@ -117,11 +131,6 @@ export default function ChatPage() {
     } finally {
       setClearing(false);
     }
-  };
-
-  const formatTime = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
