@@ -34,7 +34,10 @@ export default function Login() {
   const onSubmit = async (data: LoginFormInputs) => {
     setIsLoading(true);
     try {
-      const response = await api.post('/login', data);
+      const response = await api.post('/auth/login', data);
+      // Save JWT
+      localStorage.setItem('token', response.data.access_token);
+      console.log(response.data);
       console.log('Login response:', response.data);
       if (data) {
         setAlertMessage(`You have logged in successfully. Welcome back!`);
