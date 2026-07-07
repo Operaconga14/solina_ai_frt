@@ -1,6 +1,6 @@
 'use client';
 import { RegisterForm } from '@/app/types/interfaces';
-import { passwordStrenght, strengthColor, strengthLabel } from '@/app/utils/helpers';
+import { api,passwordStrenght, strengthColor, strengthLabel } from '@/app/utils/helpers';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   AlertCircleIcon,
@@ -47,26 +47,28 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true);
-    try {
+    try{
       // console.log('Login data:', data);
-      if (data) {
-        setAlertMessage(`You have signed up in successfully. Welcome back!`);
-        setAlertModal(true);
-        setIsSuccess(true);
-      } else if (!data) {
-        setAlertMessage(`Please enter your details`);
-        setAlertModal(true);
-        setIsSuccess(false);
-      }
+    const response = await api.post("/auth/register", {
+      full_name: data.fullName,
+      email: data.email,
+      password: data.password,
+    });
+      console.log(response.data);
+      setAlertMessage("Registration successful! Please login.");
+      setAlertModal(true);
+      setIsSuccess(true);
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       setTimeout(() => {
         setAlertModal(false);
         router.push('/login');
       }, 3000);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration error:', error);
-      setAlertMessage(`failed to register ${error}`);
+      setAlertMessage(
+      error?.response?.data?.detail || "Registration failed"
+      );
       setAlertModal(true);
       setIsSuccess(false);
 
