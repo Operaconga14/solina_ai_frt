@@ -1,18 +1,19 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { ArrowUp, ChevronUp, DoorOpen, User } from 'lucide-react';
+import { ChevronUp, DoorOpen, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { profileDropdown } from '../utils/helpers';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Topbar() {
   const pathname = usePathname();
   const [userProfileImage, setUserProfileImage] = useState(false);
   const [dropDown, setDropDown] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
   const [logoutDialog, setLogoutDialog] = useState(false);
+  const { logout, user } = useAuth();
 
   const title =
     pathname
@@ -22,15 +23,12 @@ export default function Topbar() {
       ?.replace(/-/g, '')
       .replace(/\b\w/g, (char) => char.toUpperCase()) || 'Dashboard';
 
-  const handleLogout = (value: string) => {
+  const handleLogout = async (value: string) => {
     if (value == 'yes') {
-      console.log('I have logged out');
+      await logout();
       setLogoutDialog(false);
     } else if (value == 'no') {
-      console.log('I am till in');
       setLogoutDialog(false);
-    } else {
-      return null;
     }
   };
   return (

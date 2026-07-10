@@ -1,15 +1,48 @@
 'use client';
-import { DashboardStats } from '@/app/types/interfaces';
-import { quickActions, statCards, tips } from '@/app/utils/helpers';
+import { DashboardStats, User } from '@/app/types/interfaces';
+import { api, quickActions, statCards, tips } from '@/app/utils/helpers';
+import { useAuth } from '@/app/contexts/AuthContext';
 import { ArrowRight, MessageSquare, Sparkles } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+
+  const fetchStats = async () => {
+    try {
+      const companiesRes = await api.get('/companies/');
+      const messagesRes = await api.get('/chat/');
+      const prdsRes = await api.get('/prd/');
+      const decksRes = await api.get('/pitchdeck/');
+
+      const totalCompanies = Array.isArray(companiesRes.data) ? companiesRes.data.length : 0;
+      const totalMessages = Array.isArray(messagesRes.data) ? messagesRes.data.length : 0;
+      const totalPrds = Array.isArray(prdsRes.data) ? prdsRes.data.length : 0;
+      const totalDecks = Array.isArray(decksRes.data) ? decksRes.data.length : 0;
+
+      setStats({
+        companies: totalCompanies,
+        prds: totalPrds,
+        pitchDecks: totalDecks,
+        chatMessages: totalMessages,
+      });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    ``;
+    fetchStats();
+  }, []);
+
   return (
     <div className="p-6 lg:p-8  mx-auto">
-      {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-1">
           <div className="w-2 h-2 rounded-full bg-emerald-400 pulse-glow" />
@@ -24,25 +57,25 @@ export default function Dashboard() {
             : new Date().getHours() < 18
               ? 'afternoon'
               : 'evening'}
-          {/* , <span className="text-gradient">{firstName}</span> 👋 */}
+          , <span className="text-gradient">{user?.full_name || user?.fullName || 'User'}</span>
         </h1>
         <p className="text-white/40">Your AI co-founder is ready. What are we building today?</p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
-        {statCards(stats).map((s) => (
-          <div key={s.label} className="glass rounded-2xl p-4 card-glow">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs text-white/40 font-medium">{s.label}</span>
-              <s.icon className={`w-4 h-4 ${s.color}`} />
+        {statCards(loading ? { companies: 0, prds: 0, pitchDecks: 0, chatMessages: 0 } : stats).map(
+          (s) => (
+            <div key={s.label} className="glass rounded-2xl p-4 card-glow">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs text-white/40 font-medium">{s.label}</span>
+                <s.icon className={`w-4 h-4 ${s.color}`} />
+              </div>
+              <p className="text-3xl font-black text-white">{loading ? '0' : s.value}</p>
             </div>
-            <p className="text-3xl font-black text-white">{s.value}</p>
-          </div>
-        ))}
+          ),
+        )}
       </div>
 
-      {/* Quick Actions */}
       <div className="mb-8">
         <h2 className="text-lg font-semibold text-white/80 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -68,9 +101,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Tips & Hero Banner */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Tips */}
         <div className="lg:col-span-2 glass rounded-2xl p-6 card-glow">
           <h2 className="text-base font-semibold text-white/80 mb-4 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-violet-400" />
@@ -88,7 +119,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* CTA Card */}
         <div className="glass rounded-2xl p-6 bg-gradient-to-br from-violet-600/15 to-indigo-600/10 border border-violet-500/20 card-glow flex flex-col">
           <div className="flex-1">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center mb-4 shadow-lg shadow-violet-900/50">

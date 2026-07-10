@@ -3,6 +3,7 @@ import MarkdownRenderer from '@/app/components/MarkdownRenerer';
 import { ChatSkeleton } from '@/app/components/SkeletonsLine';
 import { ChatMessage } from '@/app/types/interfaces';
 import { api, formatTime, starterPrompts } from '@/app/utils/helpers';
+import { useAuth } from '@/app/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Bot, Loader2, MessageSquare, Send, Sparkles, Trash2, User } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -10,6 +11,7 @@ import axios from 'axios';
 
 export default function ChatPage() {
   // const { error, success } = useToast();
+  const { user, loading: authLoading } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,26 +30,29 @@ export default function ChatPage() {
 
   useEffect(() => {
     const fetchMessages = async () => {
+      // Wait for auth to be ready
+      if (authLoading) return;
+
+      // If no user, don't fetch
+      if (!user) {
+        setInitialLoading(false);
+        return;
+      }
+
       try {
+       
         const res = await api.get('/chat/');
-        console.log('Chat messages:', res.data.messages);
         setMessages(res.data.messages ?? []);
       } catch (err) {
-        console.error('[Chat] Failed to fetch messages:', err);
         if (axios.isAxiosError(err)) {
-          console.error('[Chat] Axios error details:', {
-            message: err.message,
-            code: err.code,
-            response: err.response?.data,
-            status: err.response?.status,
-          });
+          setMessages(err.response?.data.messages ?? []);
         }
       } finally {
         setInitialLoading(false);
       }
     };
     fetchMessages();
-  }, []);
+  }, [authLoading, user]);
 
   const sendMessage = async (content: string) => {
     if (!content.trim() || loading) return;
@@ -65,34 +70,26 @@ export default function ChatPage() {
 
     try {
       const res = await api.post('/chat/', { message: content.trim() });
-      console.log('Chat response:', res.data);
       const assistantMessage: ChatMessage = {
         id: Date.now(),
-        role: "assistant",
-        content: res.data.response || res.data.message || "No response received",
+        role: 'assistant',
+        content: res.data.response || res.data.message || 'No response received',
         createdAt: new Date().toISOString(),
-    };
-      setMessages((prev) => [...prev, assistantMessage,]);
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (err) {
-      console.error('[Chat] Failed to send message:', err);
       if (axios.isAxiosError(err)) {
-        console.error('[Chat] Send message error details:', {
-          message: err.message,
-          code: err.code,
-          response: err.response?.data,
-          status: err.response?.status,
-        });
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now(),
+            role: 'assistant',
+            content: err.response?.data.response || err.response?.data.message || 'Sorry, something went wrong. Please try again.',
+            createdAt: new Date().toISOString(),
+          },
+        ]);
       }
-      // error(err instanceof Error ? err.message : 'Failed to send message');
-      setMessages((prev)=>[
-      ...prev,
-       {
-        id:Date.now(),
-        role:"assistant",
-        content:"Sorry, something went wrong. Please try again.",
-        createdAt:new Date().toISOString()
-        }
-      ])
+      setLoading(false);
     } finally {
       setLoading(false);
     }
@@ -115,19 +112,10 @@ export default function ChatPage() {
     try {
       await api.delete('/chat/');
       setMessages([]);
-      console.log('Chat history cleared');
-      // success('Chat history cleared');
     } catch (err) {
-      console.error('[Chat] Failed to clear chat:', err);
       if (axios.isAxiosError(err)) {
-        console.error('[Chat] Clear chat error details:', {
-          message: err.message,
-          code: err.code,
-          response: err.response?.data,
-          status: err.response?.status,
-        });
+        setMessages(err.response?.data.messages ?? []);
       }
-      // error('Failed to clear chat');
     } finally {
       setClearing(false);
     }

@@ -1,5 +1,6 @@
 'use client';
 import { Company, CompanyForm } from '@/app/types/interfaces';
+import { api } from '@/app/utils/helpers';
 import { Button } from '@/components/ui/button';
 import { Loader2, Sparkles, WorkflowIcon, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -18,6 +19,7 @@ export default function CompaniesPage({
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<CompanyForm>({
     defaultValues: {
@@ -26,6 +28,19 @@ export default function CompaniesPage({
       industry: company?.industry ?? '',
     },
   });
+
+  const fetchCompanies = async() => {
+    try {
+      const  res = await api.get(`/companies/`);
+      console.log(res.data);
+    } catch (error) {
+     console.log(error);
+    }
+  }
+
+  useEffect(() => {
+    fetchCompanies();
+  }, [setValue]);
 
   const [closeForm, setCloseForm] = useState(false);
 

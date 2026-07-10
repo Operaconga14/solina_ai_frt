@@ -1,6 +1,7 @@
 'use client';
 import { RegisterForm } from '@/app/types/interfaces';
-import { api,passwordStrenght, strengthColor, strengthLabel } from '@/app/utils/helpers';
+import { passwordStrenght, strengthColor, strengthLabel } from '@/app/utils/helpers';
+import { useAuth } from '@/app/contexts/AuthContext';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   AlertCircleIcon,
@@ -15,7 +16,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-// passwordStrenght
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -25,6 +25,7 @@ export default function RegisterPage() {
   const [alertMessage, setAlertMessage] = useState('');
   const [alertModal, setAlertModal] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const { register: registerUser } = useAuth();
 
   const {
     register,
@@ -39,36 +40,23 @@ export default function RegisterPage() {
     setPwdValue(password);
   }, [password]);
 
-  // useEffect(() => {
-  //   if (!authLoading && user) {
-  //     router.push('/dashboard');
-  //   }
-  // }, [user, authLoading, router]);
-
   const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true);
-    try{
-      // console.log('Login data:', data);
-    const response = await api.post("/auth/register", {
-      full_name: data.fullName,
-      email: data.email,
-      password: data.password,
-    });
-      console.log(response.data);
-      setAlertMessage("Registration successful! Please login.");
+    try {
+      await registerUser(data.fullName, data.email, data.password);
+      setAlertMessage("Registration successful! Redirecting...");
       setAlertModal(true);
       setIsSuccess(true);
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       setTimeout(() => {
         setAlertModal(false);
-        router.push('/login');
+        router.push('/dashboard');
       }, 3000);
     } catch (error: any) {
       console.error('Registration error:', error);
-      setAlertMessage(
-      error?.response?.data?.detail || "Registration failed"
-      );
+      const message = error?.response?.data?.detail || "Registration failed";
+      setAlertMessage(message);
       setAlertModal(true);
       setIsSuccess(false);
 

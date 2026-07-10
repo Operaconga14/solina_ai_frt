@@ -202,7 +202,7 @@ export default function PrdPage() {
                 </button>
                 {generating && (
                   <p className="text-[10px] text-white/30 text-center">
-                    This may take 15-30 seconds...
+                    This may take 15-120 seconds...
                   </p>
                 )}
               </form>
@@ -226,47 +226,53 @@ export default function PrdPage() {
               </div>
             ) : (
               prds.map((prd) => (
-                <button
-                  key={prd.id}
-                  onClick={() => {
+                <div
+                key={prd.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  setSelectedPRD(prd);
+                  setShowForm(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
                     setSelectedPRD(prd);
                     setShowForm(false);
-                  }}
-                  className={`w-full text-left glass rounded-xl p-3.5 transition-all group ${
-                    selectedPRD?.id === prd.id
-                      ? 'border-violet-500/40 bg-violet-500/10'
-                      : 'glass-hover'
-                  }`}
-                >
-                  <div className="flex items-start gap-2">
-                    <FileText
-                      className={`w-3.5 h-3.5 flex-shrink-0 mt-0.5 ${selectedPRD?.id === prd.id ? 'text-violet-400' : 'text-white/30'}`}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className={`text-xs font-semibold truncate ${selectedPRD?.id === prd.id ? 'text-violet-300' : 'text-white/70'}`}
-                      >
-                        {prd.title}
-                      </p>
-                      <p className="text-[10px] text-white/30 mt-0.5 truncate">{prd.idea}</p>
-                      <div className="flex items-center gap-1 mt-1.5 text-[10px] text-white/25">
-                        <Calendar className="w-2.5 h-2.5" />
-                        {formatDate(prd.createdAt)}
-                      </div>
+                  }
+                }}
+                className={`w-full text-left glass rounded-xl p-3.5 transition-all group cursor-pointer ${
+                  selectedPRD?.id === prd.id
+                    ? 'border-violet-500/40 bg-violet-500/10'
+                    : 'glass-hover'
+                }`}
+              >
+                <div className="flex items-start gap-2">
+                  <FileText
+                    className={`w-3.5 h-3.5 flex-shrink-0 mt-0.5 ${selectedPRD?.id === prd.id ? 'text-violet-400' : 'text-white/30'}`}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-xs font-semibold truncate ${selectedPRD?.id === prd.id ? 'text-violet-300' : 'text-white/70'}`}>
+                      {prd.title}
+                    </p>
+                    <p className="text-[10px] text-white/30 mt-0.5 truncate">{prd.idea}</p>
+                    <div className="flex items-center gap-1 mt-1.5 text-[10px] text-white/25">
+                      <Calendar className="w-2.5 h-2.5" />
+                      {formatDate(prd.createdAt)}
                     </div>
-                    <button
-                      onClick={(e) => handleDelete(prd.id, e)}
-                      disabled={deletingId === prd.id}
-                      className="p-1 rounded text-white/20 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
-                    >
-                      {deletingId === prd.id ? (
-                        <Loader2 className="w-3 h-3 spinner" />
-                      ) : (
-                        <Trash2 className="w-3 h-3" />
-                      )}
-                    </button>
                   </div>
-                </button>
+                  <button
+                    onClick={(e) => handleDelete(prd.id, e)}
+                    disabled={deletingId === prd.id}
+                    className="p-1 rounded text-white/20 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                  >
+                    {deletingId === prd.id ? (
+                      <Loader2 className="w-3 h-3 spinner" />
+                    ) : (
+                      <Trash2 className="w-3 h-3" />
+                    )}
+                  </button>
+                    </div>
+                  </div>
               ))
             )}
           </div>

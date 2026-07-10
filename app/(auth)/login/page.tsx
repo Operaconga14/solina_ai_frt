@@ -1,6 +1,6 @@
 'use client';
 import { LoginFormInputs } from '@/app/types/inputTypes';
-import { api } from '@/app/utils/helpers';
+import { useAuth } from '@/app/contexts/AuthContext';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   Sparkles,
@@ -8,7 +8,6 @@ import {
   EyeOff,
   Loader2,
   ArrowRight,
-  Check,
   AlertCircleIcon,
   CheckCircle,
 } from 'lucide-react';
@@ -24,6 +23,7 @@ export default function Login() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const router = useRouter();
+  const { login } = useAuth();
 
   const {
     register,
@@ -34,30 +34,20 @@ export default function Login() {
   const onSubmit = async (data: LoginFormInputs) => {
     setIsLoading(true);
     try {
-      const response = await api.post('/auth/login', data);
-      // Save JWT
-      localStorage.setItem('token', response.data.access_token);
-      console.log(response.data);
-      console.log('Login response:', response.data);
-      if (data) {
-        setAlertMessage(`You have logged in successfully. Welcome back!`);
-        setAlertModal(true);
-        setIsSuccess(true);
-      } else if (!data) {
-        console.log('Login response:', response.data);
-        setAlertMessage(`Please enter your email and password`);
-        setAlertModal(true);
-        setIsSuccess(false);
-      }
+      await login(data.email, data.password);
+      setAlertMessage(`You have logged in successfully. Welcome back!`);
+      setAlertModal(true);
+      setIsSuccess(true);
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       setTimeout(() => {
         setAlertModal(false);
         router.push('/dashboard');
       }, 3000);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
-      setAlertMessage(`failed to login ${error}`);
+      const message = error?.response?.data?.detail || error?.message || 'Failed to login';
+      setAlertMessage(message);
       setAlertModal(true);
       setIsSuccess(false);
 
