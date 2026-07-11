@@ -1,6 +1,6 @@
 // components/pdf/BlockRenderer.tsx
 import { Text, View, StyleSheet } from '@react-pdf/renderer';
-import { Block, InlineRun } from '@utils/markdownParser';
+import { Block, InlineRun } from '@app/utils/markdownParser';
 
 // Renders a run of inline text (handling bold/italic) inside a single <Text> parent.
 export function InlineText({ runs }: { runs: InlineRun[] }) {
